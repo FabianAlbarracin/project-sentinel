@@ -1,0 +1,14 @@
+.env
+__pycache__/
+*.pyc
+.venv/
+docs/handoff/
+*.log
+.DS_Store
+.idea/
+.vscode/
+*.egg-info/
+
+# Documentacion interna de desarrollo (no publica)
+AGENTS.md
+docs/AGENT.md
