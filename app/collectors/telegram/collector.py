@@ -44,7 +44,7 @@ EXCLUDE_PREFIXES = [
 COUPON_KEYWORDS = [
     "coupon", "coupon code", "discount code", "discount",
     "promo code", "promo", "deal", "% off", "$ off",
-    "save", "off code", "code:", "cupón", "codigo",
+    "off code", "code:", "cupón", "codigo",
     "código", "descuento",
 ]
 

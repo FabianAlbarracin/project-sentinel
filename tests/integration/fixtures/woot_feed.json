@@ -1,0 +1,86 @@
+[
+  {
+    "Categories": [
+      "PC",
+      "PC/Laptops"
+    ],
+    "Condition": "Refurbished",
+    "EndDate": "2026-07-10T05:00:00+00:00",
+    "ForumUrl": "https://forums.woot.com/t/2458105",
+    "IsAvailableOnMobileAppOnly": false,
+    "IsFeatured": false,
+    "IsFulfilledByAmazon": false,
+    "IsSoldOut": false,
+    "IsWootOff": false,
+    "ListPrice": {
+      "Minimum": 526.0,
+      "Maximum": 526.0
+    },
+    "OfferId": "95d34bb5-9f50-464a-8ead-acff7a56343a",
+    "Photo": "https://d3gqasl9vmjfd8.cloudfront.net/40d50077-11b3-41e3-af09-0d47541a071b.jpg",
+    "SalePrice": {
+      "Minimum": 429.99,
+      "Maximum": 429.99
+    },
+    "Site": "Computers",
+    "Slug": null,
+    "StartDate": "2026-06-17T05:00:00+00:00",
+    "Subtitle": null,
+    "Title": "Dell Latitude 7430 14\" FHD i7-1265U Laptop (S&D)",
+    "Url": "https://computers.woot.com/offers/dell-latitude-7430-14-fhd-i7-1265u-laptop-sd"
+  },
+  {
+    "Categories": [
+      "PC",
+      "PC/Laptops"
+    ],
+    "Condition": "Refurbished",
+    "EndDate": "2026-07-10T05:00:00+00:00",
+    "ForumUrl": "https://forums.woot.com/t/2458233",
+    "IsAvailableOnMobileAppOnly": false,
+    "IsFeatured": false,
+    "IsFulfilledByAmazon": false,
+    "IsSoldOut": false,
+    "IsWootOff": false,
+    "ListPrice": null,
+    "OfferId": "f9bee909-0b68-4c66-99be-f7c8bd735cc7",
+    "Photo": "https://d3gqasl9vmjfd8.cloudfront.net/46d07f19-6418-4262-9f0b-99688ddfbbb9.jpg",
+    "SalePrice": {
+      "Minimum": 329.99,
+      "Maximum": 329.99
+    },
+    "Site": "Computers",
+    "Slug": null,
+    "StartDate": "2026-06-17T05:00:00+00:00",
+    "Subtitle": null,
+    "Title": "Lenovo ThinkPad T14 G2 14\" FHD Touch i5 Laptop (S&D)",
+    "Url": "https://computers.woot.com/offers/lenovo-thinkpad-t14-g2-14-fhd-touch-i5-laptop-sd"
+  },
+  {
+    "Categories": [
+      "PC",
+      "PC/Laptops"
+    ],
+    "Condition": "Refurbished",
+    "EndDate": "2026-07-10T05:00:00+00:00",
+    "ForumUrl": "https://forums.woot.com/t/2458069",
+    "IsAvailableOnMobileAppOnly": false,
+    "IsFeatured": false,
+    "IsFulfilledByAmazon": false,
+    "IsSoldOut": true,
+    "IsWootOff": false,
+    "ListPrice": null,
+    "OfferId": "56d42c0d-99e0-45b8-b599-5997f04ac51b",
+    "Photo": "https://d3gqasl9vmjfd8.cloudfront.net/78e888a6-03f1-48bf-8233-a360e5c5198e.jpg",
+    "SalePrice": {
+      "Minimum": 279.99,
+      "Maximum": 279.99
+    },
+    "Site": "Computers",
+    "Slug": null,
+    "StartDate": "2026-06-17T05:00:00+00:00",
+    "Subtitle": null,
+    "Title": "HP ProBook 640 G8 14\" FHD IPS i5-1145G7 Laptop (S&D)",
+    "Url": "https://computers.woot.com/offers/hp-probook-640-g8-14-fhd-ips-i5-1145g7-laptop-sd"
+  }
+]

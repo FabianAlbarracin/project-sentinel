@@ -80,14 +80,17 @@ async def handle_observations(observations):
             if notifier is not None:
                 source = sources_by_id.get(obs.source_id)
                 source_name = source.name if source else "unknown"
-                sent = await notifier.send(obs, source_name)
-                if not sent:
+                message_id = await notifier.send(obs, source_name)
+                if message_id is None:
                     await db.update_notification_status(
                         notif_id, "FAILED",
                     )
                 else:
                     await db.update_notification_status(
                         notif_id, "SUCCESS",
+                    )
+                    await db.update_notification_message_id(
+                        notif_id, message_id,
                     )
                     notified += 1
 
@@ -123,6 +126,7 @@ async def main():
     db = Database(settings.database_url)
     await db.connect()
     await db.init_schema()
+    await db._migrate_schema()
     await db.seed_defaults()
 
     watch_terms = await db.load_watch_terms()

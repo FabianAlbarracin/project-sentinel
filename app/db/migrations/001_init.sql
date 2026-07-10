@@ -51,8 +51,19 @@ CREATE TABLE IF NOT EXISTS notifications (
     observation_id INTEGER NOT NULL REFERENCES observations(id),
     channel VARCHAR(50) NOT NULL DEFAULT 'telegram',
     status VARCHAR(50) NOT NULL DEFAULT 'SUCCESS',
+    telegram_message_id BIGINT,
     sent_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS notification_feedback (
+    id SERIAL PRIMARY KEY,
+    notification_id INTEGER NOT NULL REFERENCES notifications(id),
+    reaction VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC')
+);
+
+CREATE INDEX IF NOT EXISTS idx_feedback_notification
+    ON notification_feedback (notification_id);
 
 CREATE TABLE IF NOT EXISTS settings (
     key VARCHAR(255) PRIMARY KEY,

@@ -91,8 +91,21 @@ class Database:
                         observation_id INTEGER NOT NULL REFERENCES observations(id),
                         channel VARCHAR(50) NOT NULL DEFAULT 'telegram',
                         status VARCHAR(50) NOT NULL DEFAULT 'SUCCESS',
+                        telegram_message_id BIGINT,
                         sent_at TIMESTAMP NOT NULL DEFAULT NOW()
                     );
+                """)
+                await conn.execute("""
+                    CREATE TABLE IF NOT EXISTS notification_feedback (
+                        id SERIAL PRIMARY KEY,
+                        notification_id INTEGER NOT NULL REFERENCES notifications(id),
+                        reaction VARCHAR(50) NOT NULL,
+                        created_at TIMESTAMP NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC')
+                    );
+                """)
+                await conn.execute("""
+                    CREATE INDEX IF NOT EXISTS idx_feedback_notification
+                        ON notification_feedback (notification_id);
                 """)
                 await conn.execute("""
                     CREATE TABLE IF NOT EXISTS settings (
@@ -101,6 +114,15 @@ class Database:
                     );
                 """)
         logger.info("Schema initialized")
+
+    async def _migrate_schema(self) -> None:
+        async with self._pool.acquire() as conn:
+            async with conn.transaction():
+                await conn.execute("""
+                    ALTER TABLE notifications
+                    ADD COLUMN IF NOT EXISTS telegram_message_id BIGINT;
+                """)
+        logger.info("Schema migrations applied")
 
     async def seed_defaults(self) -> None:
         async with self._pool.acquire() as conn:
@@ -201,6 +223,7 @@ class Database:
             return row is not None
 
     async def insert_observation(self, obs: Observation) -> int:
+        from datetime import datetime
         async with self._pool.acquire() as conn:
             row = await conn.fetchrow(
                 """
@@ -214,7 +237,7 @@ class Database:
                 obs.source_id,
                 obs.watch_item_id,
                 obs.external_id,
-                obs.observed_at,
+                obs.observed_at or datetime.utcnow(),
                 obs.observation_type.value,
                 obs.title,
                 obs.price,
@@ -264,6 +287,35 @@ class Database:
             await conn.execute(
                 "UPDATE observations SET watch_item_id = $1 WHERE id = $2;",
                 watch_item_id, observation_id,
+            )
+
+    async def update_notification_message_id(
+        self, notification_id: int, telegram_message_id: int
+    ) -> None:
+        async with self._pool.acquire() as conn:
+            await conn.execute(
+                "UPDATE notifications SET telegram_message_id = $1 WHERE id = $2;",
+                telegram_message_id, notification_id,
+            )
+
+    async def find_notification_by_message_id(
+        self, telegram_message_id: int
+    ) -> Optional[dict]:
+        async with self._pool.acquire() as conn:
+            return await conn.fetchrow(
+                "SELECT id, observation_id FROM notifications "
+                "WHERE telegram_message_id = $1 LIMIT 1;",
+                telegram_message_id,
+            )
+
+    async def insert_feedback(
+        self, notification_id: int, reaction: str
+    ) -> None:
+        async with self._pool.acquire() as conn:
+            await conn.execute(
+                "INSERT INTO notification_feedback (notification_id, reaction) "
+                "VALUES ($1, $2);",
+                notification_id, reaction,
             )
 
     async def get_setting(self, key: str) -> Optional[str]:

@@ -9,7 +9,9 @@ import aiohttp
 from bs4 import BeautifulSoup
 
 from app.collectors.base import BaseCollector
+from app.collectors.scoring import is_deal
 from app.domain.entities import Observation, ObservationType
+
 
 logger = logging.getLogger(__name__)
 
@@ -30,19 +32,10 @@ DEFAULT_HEADERS = {
 
 DEFAULT_SUBREDDITS = ["kindle", "ereader", "kindlescribe"]
 
-DEAL_SIGNALS = [
-    "sale", " on sale", "deal", "discount", "coupon", "with code",
-    "use code", "promo", "% off", "$ off", "save", "price drop",
-    "clearance", "refurbished", "renewed", "price cut", "marked down",
-    " trade in", "trade-in", "buy one", "buy 1",
-]
-
-PRICE_RE = re.compile(r"\$\d+(?:\.\d{2})?")
-
 COUPON_KEYWORDS = [
     "coupon", "coupon code", "discount code", "discount",
     "promo code", "promo", "deal", "% off", "$ off",
-    "save", "off code",
+    "off code",
 ]
 
 COUPON_CODE_RE = re.compile(
@@ -51,14 +44,7 @@ COUPON_CODE_RE = re.compile(
 
 
 def _is_deal_post(title: str) -> bool:
-    lower = title.lower()
-    for signal in DEAL_SIGNALS:
-        if signal in lower:
-            return True
-    if PRICE_RE.search(title):
-        return True
-    return False
-
+    return is_deal(title)
 
 def _classify_post(title: str, selftext: str) -> ObservationType:
     combined = f"{title} {selftext}".lower()

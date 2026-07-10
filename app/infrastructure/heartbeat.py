@@ -44,39 +44,73 @@ class TelegramListener:
                 updates = await self._bot.get_updates(
                     offset=self._last_update_id + 1,
                     timeout=10,
-                    allowed_updates=["message"],
+                    allowed_updates=["message", "message_reaction"],
                 )
                 for update in updates:
                     self._last_update_id = max(
                         self._last_update_id, update.update_id
                     )
-                    msg = update.message
-                    if msg is None or msg.text is None:
-                        continue
-                    if str(msg.chat.id) != self._chat_id:
-                        continue
 
-                    text = msg.text.strip()
-                    if text == "/status":
-                        response = await self._build_status()
-                    else:
-                        continue
+                    if update.message is not None:
+                        await self._handle_message(update.message)
 
-                    try:
-                        await self._bot.send_message(
-                            chat_id=self._chat_id,
-                            text=response,
-                        )
-                    except TelegramError:
-                        logger.warning(
-                            "Failed to send /status response"
-                        )
+                    if update.message_reaction is not None:
+                        await self._handle_reaction(update.message_reaction)
             except asyncio.CancelledError:
                 break
             except Exception:
                 logger.exception("Error in Telegram listener poll loop")
 
             await asyncio.sleep(10)
+
+    async def _handle_message(self, msg) -> None:
+        if msg is None or msg.text is None:
+            return
+        if str(msg.chat.id) != self._chat_id:
+            return
+
+        text = msg.text.strip()
+        if text == "/status":
+            response = await self._build_status()
+            try:
+                await self._bot.send_message(
+                    chat_id=self._chat_id,
+                    text=response,
+                )
+            except TelegramError:
+                logger.warning(
+                    "Failed to send /status response"
+                )
+
+    async def _handle_reaction(self, reaction) -> None:
+        if str(reaction.chat.id) != self._chat_id:
+            return
+
+        notification = await self._db.find_notification_by_message_id(
+            reaction.message_id,
+        )
+        if notification is None:
+            return
+
+        for r in reaction.new_reaction:
+            emoji = getattr(r, "emoji", None)
+            if emoji in ("\U0001f44d", "\U0001f44e"):
+                await self._db.insert_feedback(
+                    notification["id"], emoji,
+                )
+                logger.info(
+                    "Feedback stored: notification_id=%d reaction=%s",
+                    notification["id"], emoji,
+                )
+
+        try:
+            await self._bot.send_message(
+                chat_id=self._chat_id,
+                text="Feedback recibido \u2713",
+                reply_to_message_id=reaction.message_id,
+            )
+        except TelegramError:
+            logger.warning("Failed to send feedback acknowledgment")
 
     async def _build_status(self) -> str:
         try:

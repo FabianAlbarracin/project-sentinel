@@ -12,6 +12,8 @@ logger = logging.getLogger(__name__)
 
 _MARKDOWN_ESCAPE = re.compile(r"([_*\[\]()~`>#+\-=|{}.!\\])")
 
+_SEPARATOR = "\u2500" * 15
+
 
 class TelegramNotifier:
     def __init__(self, bot_token: str, chat_id: str):
@@ -22,19 +24,21 @@ class TelegramNotifier:
         self,
         observation: Observation,
         source_name: str,
-    ) -> bool:
+    ) -> Optional[int]:
         text = self._build_message(observation, source_name)
         try:
-            await self._bot.send_message(
+            msg = await self._bot.send_message(
                 chat_id=self._chat_id,
                 text=text,
                 parse_mode="MarkdownV2",
             )
             logger.info(
-                "Notification sent via Telegram: observation_id=%s",
+                "Notification sent via Telegram: observation_id=%s "
+                "message_id=%d",
                 observation.id,
+                msg.message_id,
             )
-            return True
+            return msg.message_id
         except TelegramError as e:
             logger.warning(
                 "Failed to send Telegram notification: "
@@ -42,82 +46,93 @@ class TelegramNotifier:
                 observation.id,
                 type(e).__name__,
             )
-            return False
+            return None
 
     def _build_message(
         self,
         observation: Observation,
         source_name: str,
     ) -> str:
-        obs_type = observation.observation_type
+        source_lower = source_name.lower() if source_name else ""
+        source_display = source_name.capitalize() if source_name else "Unknown"
 
+        if source_lower == "telegram":
+            return self._format_telegram_msg(observation)
+
+        obs_type = observation.observation_type
         if obs_type == ObservationType.PRODUCT:
-            return self._format_product(observation, source_name)
+            return self._format_product(observation, source_display)
         elif obs_type == ObservationType.COUPON:
-            return self._format_coupon(observation, source_name)
-        elif obs_type == ObservationType.POST:
-            return self._format_post(observation, source_name)
+            return self._format_coupon(observation, source_display)
         else:
-            return self._format_post(observation, source_name)
+            return self._format_post(observation, source_display)
 
     def _format_product(
-        self, obs: Observation, source_name: str
+        self, obs: Observation, source: str
     ) -> str:
         title = _escape(obs.title or "")
-        source = _escape(source_name)
-        parts = [
-            "\U0001f4e6 Producto detectado",
-            "",
-            f"Fuente:",
-            source,
-        ]
+        parts = ["\U0001f4e6 Producto detectado", "", f"Fuente: {source}"]
         if title:
             parts.extend(["", "Producto:", title])
         if obs.price is not None:
             price = _format_price(obs.price)
             currency = obs.currency or ""
-            parts.extend(["", "Precio:", f"{price} {currency}"])
+            parts.append(f"Precio: {price} {currency}")
         if obs.url:
             url = _escape(obs.url)
-            parts.extend(["", "\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500", "", f"\U0001f517 [Abrir publicacion]({url})"])
+            parts.extend(["", _SEPARATOR, "", f"\U0001f517 [Abrir publicacion]({url})"])
         return "\n".join(parts)
 
     def _format_coupon(
-        self, obs: Observation, source_name: str
+        self, obs: Observation, source: str
     ) -> str:
-        source = _escape(source_name)
         title = _escape(obs.title or "")
         coupon = _escape(obs.coupon or "")
-        parts = [
-            "\U0001f39f Cupon detectado",
-        ]
+        parts = ["\U0001f39f Cupon detectado"]
         if coupon:
-            parts.extend(["", "Codigo:", coupon])
-        parts.extend(["", "Fuente:", source])
+            parts.append(f"Codigo: {coupon}")
+        parts.append(f"Fuente: {source}")
         if title:
             parts.extend(["", "Titulo:", title])
         if obs.url:
             url = _escape(obs.url)
-            parts.extend(["", "\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500", "", f"\U0001f517 [Abrir publicacion]({url})"])
+            parts.extend(["", _SEPARATOR, "", f"\U0001f517 [Abrir publicacion]({url})"])
         return "\n".join(parts)
 
     def _format_post(
-        self, obs: Observation, source_name: str
+        self, obs: Observation, source: str
     ) -> str:
-        source = _escape(source_name)
         title = _escape(obs.title or "")
         parts = [
             "\U0001f4ac Publicacion relevante",
             "",
-            f"Fuente:",
-            source,
+            f"Fuente: {source}",
         ]
         if title:
             parts.extend(["", "Titulo:", title])
         if obs.url:
             url = _escape(obs.url)
-            parts.extend(["", "\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500", "", f"\U0001f517 [Abrir publicacion]({url})"])
+            parts.extend(["", _SEPARATOR, "", f"\U0001f517 [Abrir publicacion]({url})"])
         return "\n".join(parts)
+
+    def _format_telegram_msg(self, obs: Observation) -> str:
+        channel = _extract_channel(obs.url) or "desconocido"
+        channel = _escape(channel)
+        title = _escape(obs.title or "")
+        parts = ["\U0001f4e2 Mensaje relevante", "", f"Grupo: {channel}"]
+        if title:
+            parts.extend(["", "Mensaje:", title])
+        if obs.url:
+            url = _escape(obs.url)
+            parts.extend(["", _SEPARATOR, "", f"\U0001f517 [Abrir mensaje]({url})"])
+        return "\n".join(parts)
+
+
+def _extract_channel(url: Optional[str]) -> Optional[str]:
+    if not url:
+        return None
+    match = re.match(r"https?://t\.me/([^/]+)", url)
+    return match.group(1) if match else None
 
 
 def _escape(text: str) -> str:
