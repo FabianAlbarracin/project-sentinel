@@ -9,7 +9,7 @@ from app.infrastructure.config import Settings
 
 logger = logging.getLogger(__name__)
 
-OBSERVATION_STALE_MINUTES = 60
+OBSERVATION_STALE_MINUTES = 180
 
 
 async def check_health() -> bool:

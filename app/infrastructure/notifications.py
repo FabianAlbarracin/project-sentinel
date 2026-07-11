@@ -77,7 +77,7 @@ class TelegramNotifier:
         if obs.price is not None:
             price = _format_price(obs.price)
             currency = obs.currency or ""
-            parts.append(f"Precio: {price} {currency}")
+            parts.append(f"Precio: {_escape(price)} {currency}")
         if obs.url:
             url = _escape(obs.url)
             parts.extend(["", _SEPARATOR, "", f"\U0001f517 [Abrir publicacion]({url})"])

@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     telegram_chat_id: str = ""
 
     woot_api_key: str = ""
-    woot_interval_seconds: int = 900
+    woot_interval_seconds: int = 60
 
     reddit_interval_seconds: int = 600
 
